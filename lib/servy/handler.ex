@@ -2,10 +2,39 @@ defmodule Servy.Handler do
   def handle(request) do
     request
     |> parse
+    |> rewrite_path
+    |> rewrite_query_params
     |> log
     |> route
+    |> track
+    |> emojify
     |> format_response
   end
+
+  def emojify(%{status: 200, resp_body: resp_body} = conv) do
+    %{conv | resp_body: "🎉🎉🎉\n #{resp_body}\n 🎉🎉🎉"}
+  end
+
+  def emojify(conv), do: conv
+
+  def rewrite_query_params(%{path: "/bears?id=" <> id} = conv) do
+    %{conv | path: "/bears/#{id}"}
+  end
+
+  def rewrite_query_params(conv), do: conv
+
+  def track(%{status: 404, path: path} = conv) do
+    IO.puts("Warning: #{path} is on the loose!")
+    conv
+  end
+
+  def track(conv), do: conv
+
+  def rewrite_path(%{path: "/wildlife"} = conv) do
+    %{conv | path: "/wildthings"}
+  end
+
+  def rewrite_path(conv), do: conv
 
   def log(conv), do: IO.inspect conv
 
@@ -22,27 +51,27 @@ defmodule Servy.Handler do
      }
   end
 
-  def route(conv) do
-    route(conv, conv.method, conv.path)
-  end
+  # def route(conv) do
+  #   route(conv, conv.method, conv.path)
+  # end
 
-  def route(conv, "GET", "/wildthings") do
+  def route(%{method: "GET", path: "/wildthings"} = conv) do
     %{ conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
-  def route(conv, "GET", "/bears") do
+  def route(%{method: "GET", path: "/bears"} = conv) do
     %{ conv | status: 200, resp_body: "Teddy, Smokey, Paddington"}
   end
 
-  def route(conv, "GET", "/bears/" <> id) do
+  def route(%{method: "GET", path: "/bears/" <> id} = conv) do
     %{ conv | status: 200, resp_body: "Bear #{id}"}
   end
 
-  def route(conv, "DELETE", "/bears/" <> _id) do
+  def route(%{method: "DELETE", path: "/bears/" <> _id} = conv) do
     %{ conv | status: 403, resp_body: "Deleting a bear is forbidden."}
   end
 
-  def route(conv, _method, path) do
+  def route(%{method: _method, path: path} = conv) do
     %{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
@@ -121,6 +150,30 @@ IO.puts(response)
 
 request = """
 DELETE /bears/1 HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
+"""
+
+response = Servy.Handler.handle(request)
+
+IO.puts(response)
+
+request = """
+GET /wildlife HTTP/1.1
+Host: example.com
+User-Agent: ExampleBrowser/1.0
+Accept: */*
+
+"""
+
+response = Servy.Handler.handle(request)
+
+IO.puts(response)
+
+request = """
+GET /bears?id=3 HTTP/1.1
 Host: example.com
 User-Agent: ExampleBrowser/1.0
 Accept: */*
