@@ -4,7 +4,7 @@ defmodule Servy.Handler do
   Handles HTTP requests.
   """
 
-  @pages_path Path.expand("../../pages", __DIR__)
+  @pages_path Path.expand("pages", File.cwd!)
 
   import Servy.Plugins, only: [rewrite_path: 1, rewrite_query_params: 1, log: 1, track: 1, emojify: 1]  # The number indicates the arity of the function.
   import Servy.Parser, only: [parse: 1]
