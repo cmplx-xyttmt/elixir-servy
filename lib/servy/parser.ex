@@ -8,7 +8,7 @@ defmodule Servy.Parser do
 
     [method, path, _] = String.split(request_line, " ")
 
-    headers = parse_headers(header_lines, %{})
+    headers = parse_headers(header_lines)
 
     params = parse_params(headers["Content-Type"], params_string)
 
@@ -25,6 +25,15 @@ defmodule Servy.Parser do
   end
 
   def parse_params(_, _), do: %{}
+
+  def add_header(line, curr_headers) do
+    [key, value] = String.split(line, ": ")
+    Map.put(curr_headers, key, value)
+  end
+  # parse_headers without recursion
+  def parse_headers(header_lines) do
+    Enum.reduce(header_lines, %{}, &add_header/2)
+  end
 
   def parse_headers([head | tail], headers) do
     [key, value] = String.split(head, ": ")
