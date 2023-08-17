@@ -4,7 +4,11 @@ defmodule Servy.Plugins do
   require Logger
 
   def emojify(%Conv{status: 200, resp_body: resp_body} = conv) do
-    %{conv | resp_body: "🎉🎉🎉\n #{resp_body}\n 🎉🎉🎉"}
+    if Mix.env() != :test do
+      %{conv | resp_body: "🎉🎉🎉\n #{resp_body}\n 🎉🎉🎉"}
+    else
+      conv
+    end
   end
 
   def emojify(conv), do: conv
@@ -16,7 +20,9 @@ defmodule Servy.Plugins do
   def rewrite_query_params(conv), do: conv
 
   def track(%Conv{status: 404, path: path} = conv) do
-    Logger.info "Warning: #{path} is on the loose!\n\n"
+    if Mix.env() != :test do
+      Logger.info "Warning: #{path} is on the loose!\n\n"
+    end
     conv
   end
 
@@ -28,5 +34,10 @@ defmodule Servy.Plugins do
 
   def rewrite_path(%Conv{} = conv), do: conv
 
-  def log(conv), do: IO.inspect conv
+  def log(conv) do
+    if Mix.env() == :dev do
+      IO.inspect conv
+    end
+    conv
+  end
 end
