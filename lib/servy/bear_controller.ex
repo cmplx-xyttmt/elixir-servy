@@ -1,21 +1,11 @@
 defmodule Servy.BearController do
   alias Servy.Wildthings
   alias Servy.Bear
-
-  @templates_path Path.expand("templates", File.cwd!)
+  import Servy.View, only: [render: 3]
 
   # defp bear_item(bear) do
   #   "<li>#{bear.name} - #{bear.type}</li>"
   # end
-
-  # \\ [] sets an empty list as the default
-  defp render(template, conv, bindings \\ []) do
-    content =
-      @templates_path
-      |> Path.join(template)
-      |> EEx.eval_file(bindings)
-    %{conv | status: 200, resp_body: content}
-  end
 
   def index(conv) do
     bears =
