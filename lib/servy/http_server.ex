@@ -38,7 +38,7 @@ defmodule Servy.HttpServer do
     IO.puts("Connection accepted!\n")
 
     # Receives the request and sends a response over the client socket.
-    serve(client_socket)
+    spawn(fn -> serve(client_socket) end) # spawns a new process isolated from others.
 
     # Loop back to waint and accept the next connection
     accept_loop(listen_socket)
@@ -48,6 +48,7 @@ defmodule Servy.HttpServer do
   Recieves the request on the `client_socket` and sends a response back over the same socket.
   """
   def serve(client_socket) do
+    IO.puts("#{inspect self()}: Working on it!")
     client_socket
       |> read_request
       |> Servy.Handler.handle
